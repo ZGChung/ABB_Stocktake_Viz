@@ -1,0 +1,400 @@
+Private Sub Worksheet_Change(ByVal Target As Range)
+
+'result = MsgBox("Store the changes?", 1, "Confirmation")
+Selection.Resize(1, 1).Select
+
+    Dim pt%, rowmax, rowmax3
+    'rowmax = Worksheets(2).Range("A65536").End(xlUp).Row
+    'before B2BC
+    'rowmax = 404
+    'befor B2BO
+    rowmax = 2554
+    rowmax3 = Worksheets(4).Range("G65536").End(xlUp).Row
+    'move pt to the last row of sheet5
+    pt = rowmax3 + 1
+
+Worksheets(4).Cells(pt, 21) = Time
+If Abs(Sheets(4).Cells(pt - 1, 21).Value - Sheets(4).Cells(pt, 21).Value) > 0.0001 Then
+
+    
+    Dim r, c, a, b, g
+    r = Selection.Row
+    c = Selection.Column
+    a = (r Mod 20) - 1
+    b = c - 1
+        
+        
+    'write column 13
+    If (c - 1) / 4 < 9 Then
+        If b Mod 4 = 0 Then
+            Sheets(4).Cells(pt, 13) = "B2B" & Chr(((r - r Mod 20) / 20) + Asc("A")) & 1 + (a - a Mod 3) / 3 & "00" & (b - (b Mod 4)) / 4
+        Else
+            Sheets(4).Cells(pt, 13) = "B2B" & Chr(((r - r Mod 20) / 20) + Asc("A")) & 1 + (a - a Mod 3) / 3 & "00" & 1 + (b - (b Mod 4)) / 4
+        End If
+    Else
+        If b Mod 4 = 0 Then
+            Sheets(4).Cells(pt, 13) = "B2B" & Chr(((r - r Mod 20) / 20) + Asc("A")) & 1 + (a - a Mod 3) / 3 & "00" & (b - (b Mod 4)) / 4
+        Else
+            Sheets(4).Cells(pt, 13) = "B2B" & Chr(((r - r Mod 20) / 20) + Asc("A")) & 1 + (a - a Mod 3) / 3 & "0" & 1 + (b - (b Mod 4)) / 4
+        End If
+    End If
+    
+    'write column 7
+    
+    For i = 2 To rowmax
+        If Sheets(2).Cells(i, 2).Value = Selection.Value Then
+            If Sheets(2).Cells(i, 1).Value <> Sheets(4).Cells(pt, 13).Value Then
+            
+                Sheets(4).Cells(pt, 7) = Sheets(2).Cells(i, 1).Value
+                
+            Else
+                Sheets(4).Rows(pt).Clear
+            End If
+        End If
+        
+    Next
+    
+    Dim xv, yv
+    'Error detect : llwt to tpw or inverse
+    For xv = 2 To rowmax
+        If Sheets(2).Cells(xv, 1).Value = Sheets(4).Cells(pt, 7).Value And Sheets(2).Cells(xv, 2).Value = Selection.Value Then
+            For yv = 2 To rowmax
+                If Sheets(2).Cells(yv, 1).Value = Sheets(4).Cells(pt, 13).Value And Sheets(2).Cells(yv, 2).Value = "" Then
+                    If Sheets(2).Cells(xv, 10).Value <> "" And Sheets(2).Cells(yv, 11).Value <> "" Then
+                        MsgBox ("Error, you have move a tp to a llt!")
+                        End
+                    ElseIf Sheets(2).Cells(xv, 11).Value <> "" And Sheets(2).Cells(yv, 10).Value <> "" Then
+                        MsgBox ("Error, you have move a llt to a tp!")
+                        End
+
+                    End If
+                    Exit For
+                End If
+            Next
+            Exit For
+        End If
+        
+    Next
+    'MsgBox ("pass")
+    'refill the color of the ori
+    Dim flag3, d
+    flag3 = 0
+    
+    For xv = 2 To rowmax
+    flag3 = 0
+        If Sheets(2).Cells(xv, 1).Value = Sheets(4).Cells(pt, 7).Value And Sheets(2).Cells(xv, 2).Value = Selection.Value Then
+            If Sheets(2).Cells(xv, 10).Value <> "" Then
+                d = 4 * Sheets(2).Cells(xv, 10).Value
+            ElseIf Sheets(2).Cells(xv, 11).Value <> "" Then
+                d = 4 * Sheets(2).Cells(xv, 11).Value
+            End If
+             
+             'locate ori in the chart
+             For col = 0 To 13
+                If Sheets(3).Cells(1 + col * 20, 1).Value = Mid(Sheets(2).Cells(xv, 1).Value, 1, 4) Then
+                    For i = 0 To 50
+                        For j = 0 To 5
+                            If Sheets(3).Cells(col * 20 + 2 + j * 3, 2 + i * 4).Value = Sheets(2).Cells(xv, 1).Value Then
+                                For k = 0 To 3
+                                    If Sheets(3).Cells(col * 20 + 3 + j * 3, 2 + i * 4 + k).Interior.Color <> vbYellow Then
+                                        For m = 0 To d - 1
+                                            If Sheets(2).Cells(xv, 10).Value <> "" Then
+                                                Sheets(3).Cells(col * 20 + 3 + j * 3, 2 + i * 4 + k + m).Interior.Color = vbBlue
+                                                flag3 = 1
+                                            ElseIf Sheets(2).Cells(xv, 11).Value <> "" Then
+                                                Sheets(3).Cells(col * 20 + 3 + j * 3, 2 + i * 4 + k + m).Interior.ColorIndex = 20
+                                                flag3 = 1
+                                            End If
+                                        Next
+                                        
+                                    End If
+                                    If flag3 = 1 Then
+                                        Exit For
+                                    End If
+                                Next
+                                
+                            End If
+                            If flag3 = 1 Then
+                                Exit For
+                            End If
+                        Next
+                        If flag3 = 1 Then
+                            Exit For
+                        End If
+                    Next
+                End If
+                If flag3 = 1 Then
+                    Exit For
+                End If
+            Next
+        End If
+        If flag3 = 1 Then
+            Exit For
+        End If
+    Next
+                                            
+                                    
+            
+                
+    
+    
+    'write WS2
+    Dim x, y, p, ori, bias, head, midd, tail, y2, y3, ind, temp, flag2
+    bias = 0
+    head = 0
+    midd = 0
+    tail = 0
+    flag2 = 0
+    For x = 2 To rowmax
+        bias = 0
+        If Sheets(2).Cells(x, 2) = Selection.Value Then
+            If Sheets(2).Cells(x, 10) = 1 Then
+                For y = 2 To rowmax
+                    If Sheets(2).Cells(y, 1).Value = Sheets(4).Cells(pt, 13).Value Then
+                        Sheets(2).Cells(y, 1) = Sheets(4).Cells(pt, 7).Value
+                        
+                        'Exit For
+                    End If
+                Next
+                Sheets(2).Cells(x, 1) = Sheets(4).Cells(pt, 13).Value
+                flag2 = 1
+                Exit For
+            'int tpw case
+            ElseIf Sheets(2).Cells(x, 10).Value > 0 And Int(Sheets(2).Cells(x, 10).Value) = Sheets(2).Cells(x, 10).Value Then
+                For y = 2 To rowmax
+                    If Sheets(2).Cells(y, 1).Value = Sheets(4).Cells(pt, 13).Value Then
+                        d = Sheets(2).Cells(x, 10).Value
+                        ori = Sheets(4).Cells(pt, 7).Value
+                        For p = 0 To d - 1
+                            If Int(Mid(ori, 7, 8)) + p < 10 Then
+                                Sheets(2).Cells(y + p, 1) = Mid(ori, 1, 7) & Mid(Str(Int(Mid(ori, 7, 8)) + p), 2)
+                            Else
+                                Sheets(2).Cells(y + p, 1) = Mid(ori, 1, 6) & Mid(Str(Int(Mid(ori, 7, 8)) + p), 2, 3)
+                            End If
+                        Next
+                        'Exit For
+                    End If
+                Next
+                Sheets(2).Cells(x, 1) = Sheets(4).Cells(pt, 13).Value
+                flag2 = 1
+                'Exit For
+            Else
+                'MsgBox ("…Êº∞¡˜¿˚Ãı")
+                'find the des
+                For y = 2 To rowmax
+                    If Sheets(2).Cells(y, 1).Value = Sheets(4).Cells(pt, 13).Value And Sheets(2).Cells(y, 2).Value = "" Then
+                    
+                        '1. if ori lltw = des lltw
+                        If Sheets(2).Cells(x, 11).Value = Sheets(2).Cells(y, 11).Value Then
+                            'swap directly
+                            Sheets(2).Cells(x, 1) = Sheets(4).Cells(pt, 13).Value
+                            Sheets(2).Cells(y, 1) = Sheets(4).Cells(pt, 7).Value
+                            flag2 = 1
+                            Exit For
+                        '2. elseif ori lltw < des lltw
+                        ElseIf Sheets(2).Cells(x, 11).Value < Sheets(2).Cells(y, 11).Value Then
+                            'cut the des into ori + (des-ori)
+                            Sheets(2).Rows(y).Copy
+                            Sheets(2).Rows(y + 1).Insert
+                            bias = bias + 1
+                            'relocate the ori
+                            For x2 = 2 To rowmax
+                                If Sheets(2).Cells(x2, 1).Value = Sheets(4).Cells(pt, 7).Value And Sheets(2).Cells(x2, 2).Value = Selection.Value Then
+                                    Sheets(2).Cells(y, 11) = Sheets(2).Cells(x2, 11).Value
+                                    Sheets(2).Cells(y + 1, 11) = Sheets(2).Cells(y + 1, 11).Value - Sheets(2).Cells(y, 11).Value
+                                    'swap the first part
+                                    Sheets(2).Cells(x2, 1) = Sheets(4).Cells(pt, 13).Value
+                                    Sheets(2).Cells(y, 1) = Sheets(4).Cells(pt, 7).Value
+                                    Exit For
+                                End If
+                            Next
+                            flag2 = 1
+                            Exit For
+                            
+                        '3. else ori lltw > des lltw
+                        Else
+                            
+                            'cut des into 3 parts head + midd + tail
+                            head = Sheets(2).Cells(y, 11).Value
+                            midd = Int(Sheets(2).Cells(x, 11).Value - head)
+                            tail = Sheets(2).Cells(x, 11).Value - head - midd
+                            'swap the head
+                            Sheets(2).Rows(x).Copy
+                            Sheets(2).Rows(x + 1).Insert
+                            Sheets(2).Rows(x).Copy
+                            Sheets(2).Rows(x + 1).Insert
+                            bias = 2
+                            Sheets(2).Cells(x + 1, 11) = midd
+                            Sheets(2).Cells(x + 2, 11) = tail
+                            If tail = 0 Then
+                                Sheets(2).Rows(x + 2).Delete
+                                bias = bias - 1
+                            End If
+                            Sheets(2).Cells(x, 11) = head + midd + tail
+                            
+                                'relocate the des
+                                For x2 = 2 To rowmax
+                                    If Sheets(2).Cells(x2, 1).Value = Sheets(4).Cells(pt, 13).Value Then
+                                        Sheets(2).Cells(x2, 1) = Sheets(4).Cells(pt, 7).Value
+                                        Sheets(2).Cells(x, 1) = Sheets(4).Cells(pt, 13).Value
+                                        Exit For
+                                        
+                                    End If
+                                Next
+                                
+                            
+                            'deal with 2nd part like the "int tpw" case
+                            If midd = 1 Then
+                                If Int(Mid(Sheets(4).Cells(pt, 13).Value, 7, 8)) + 1 < 10 Then
+                                    des = Mid(Sheets(4).Cells(pt, 13).Value, 1, 7) & Mid(Str(Int(Mid(Sheets(4).Cells(pt, 13).Value, 7, 8)) + 1), 2)
+                                Else
+                                    des = Mid(Sheets(4).Cells(pt, 13).Value, 1, 6) & Mid(Str(Int(Mid(Sheets(4).Cells(pt, 13).Value, 7, 8)) + 1), 2, 3)
+                                End If
+                                ori = Sheets(2).Cells(x + 1, 1).Value
+                                
+                                For y2 = 2 To rowmax
+                                    
+                                    If Sheets(2).Cells(y2, 1).vlaue = des Then
+                                        Sheets(2).Cells(y2, 1) = ori
+                                        Sheets(2).Cells(x + 1, 1) = des
+                                        Exit For
+                                    End If
+                                Next
+        
+                            Else
+                                If Int(Mid(Sheets(4).Cells(pt, 13).Value, 7, 8)) + 1 < 10 Then
+                                    des = Mid(Sheets(4).Cells(pt, 13).Value, 1, 7) & Mid(Str(Int(Mid(Sheets(4).Cells(pt, 13).Value, 7, 8)) + 1), 2)
+                                Else
+                                    des = Mid(Sheets(4).Cells(pt, 13).Value, 1, 6) & Mid(Str(Int(Mid(Sheets(4).Cells(pt, 13).Value, 7, 8)) + 1), 2, 3)
+                                End If
+                                '≈–∂œ“ªœ¬oriœ¬“ª∏ˆstr 3044 Ω·Œ≤ «∑ÒΩ¯Œª£¨’‚∏ˆori”¶µ± «3044
+                                ori = Sheets(2).Cells(x + 1, 1).Value
+                                For y2 = 2 To rowmax
+                                    If Sheets(2).Cells(y2, 1).Value = des Then
+                                        If Int(Mid(ori, 7, 8)) + 1 < 10 Then
+                                            ori = Mid(ori, 1, 7) & Mid(Str(Int(Mid(ori, 7, 8)) + 1), 2)
+                                            Sheets(2).Cells(y2, 1) = ori
+                                        Else
+                                            ori = Mid(ori, 1, 6) & Mid(Str(Int(Mid(ori, 7, 8)) + 1), 2, 3)
+                                            Sheets(2).Cells(y2, 1) = ori
+                                        End If
+                                        'Sheets(2).Cells(y2, 11) = 1
+                                        
+                                        'Sheets(2).Cells(x + 1, 1) = des
+                                        'Sheets(2).Cells(x + 1, 11) = midd
+                                        Sheets(2).Rows(x + 1).Delete
+                                        bias = bias - 1
+                                        
+                                        For y3 = 1 To midd - 1
+                                            If Int(Mid(ori, 7, 8)) + y3 < 10 Then
+                                                Sheets(2).Cells(y2 + y3, 1) = Mid(ori, 1, 7) & Mid(Str(Int(Mid(ori, 7, 8)) + y3), 2)
+                                            Else
+                                                
+                                                Sheets(2).Cells(y2 + y3, 1) = Mid(ori, 1, 6) & Mid(Str(Int(Mid(ori, 7, 8)) + y3), 2, 3)
+                                            End If
+                                        
+                                        Next
+                                        Exit For
+                                    End If
+                                Next
+                            End If
+                                
+                                
+                                
+                            'deal with 3rd part like the "ori lltw < des lltw" case
+                            If tail <> 0 Then
+                                ''’‚∏ˆori“≤¥Ê‘⁄Œ Ã‚£¨µ√µΩµƒ «3043£¨”¶∏√œÎ“™3045.“≤–Ë“™¥”◊÷∑˚¥ÆÕ∆ªÿ»•
+                                ori = Sheets(2).Cells(x + 2, 1).Value
+                                If Int(Mid(Sheets(4).Cells(pt, 13).Value, 7, 8)) + 1 + midd < 10 Then
+                                    des = Mid(Sheets(4).Cells(pt, 13).Value, 1, 7) & Mid(Str(Int(Mid(Sheets(4).Cells(pt, 13).Value, 7, 8)) + 1 + midd), 2)
+                                Else
+                                    des = Mid(Sheets(4).Cells(pt, 13).Value, 1, 6) & Mid(Str(Int(Mid(Sheets(4).Cells(pt, 13).Value, 7, 8)) + 1 + midd), 2, 3)
+                                End If
+                                For y2 = 2 To rowmax
+                                    If Sheets(2).Cells(y2, 1).Value = des Then
+                                        Sheets(2).Rows(y2).Copy
+                                        Sheets(2).Rows(y2 + 1).Insert
+                                        bias = bias + 1
+                                        Sheets(2).Cells(y2, 11) = tail
+                                        Sheets(2).Cells(y2 + 1, 11) = Sheets(2).Cells(y2 + 1, 11).Value - tail
+                                        'relocate the x+2
+                                        For x3 = 2 To rowmax
+                                            If Sheets(2).Cells(x3, 1) = ori Then
+                                                Sheets(2).Cells(x3, 1) = Sheets(2).Cells(y2, 1).Value
+                                                Exit For
+                                            End If
+                                        Next
+    
+                                        'Sheets(2).Cells(y2, 1) = ori
+                                        des = Sheets(4).Cells(pt, 13).Value
+                                        If Int(Mid(des, 7, 8)) + 1 + midd < 10 Then
+                                            Sheets(2).Cells(y2 + 1, 1) = Mid(des, 1, 7) & Mid(Str(Int(Mid(des, 7, 8)) + 1 + midd), 2)
+                                        Else
+                                            Sheets(2).Cells(y2 + 1, 1) = Mid(des, 1, 6) & Mid(Str(Int(Mid(des, 7, 8)) + 1 + midd), 2, 3)
+                                        End If
+                                        Exit For
+                                    End If
+                                Next
+                            End If
+                            flag2 = 1
+                                
+                            
+                            
+                        End If
+                        
+                    
+                    End If
+                    
+                Next
+                
+            End If
+            
+        End If
+        x = x + bias
+        If flag2 = 1 Then
+            Exit For
+        End If
+    Next
+        
+    'resort the WS2 according to column A
+    ActiveWorkbook.Worksheets("≤÷ø‚∂®Œª").Sort.SortFields.Add2 Key:=Range("A2:A3025") _
+        , SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    With ActiveWorkbook.Worksheets("≤÷ø‚∂®Œª").Sort
+        .SetRange Range("A1:V3025")
+        .Header = xlYes
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .SortMethod = xlPinYin
+        .Apply
+    End With
+    
+    'pack the empty holes
+    For ind = 2 To rowmax
+        If Sheets(2).Cells(ind, 2).Value = "" And Sheets(2).Cells(ind - 1, 2).Value = "" Then
+            If Sheets(2).Cells(ind, 11).Value <> 1 And Sheets(2).Cells(ind - 1, 11).Value <> 1 Then
+                If Sheets(2).Cells(ind, 1).Value = Sheets(2).Cells(ind - 1, 1).Value Then
+                    If Sheets(2).Cells(ind - 1, 11).Value + Sheets(2).Cells(ind, 11).Value <= 1 Then
+                        Sheets(2).Cells(ind - 1, 11) = Sheets(2).Cells(ind - 1, 11).Value + Sheets(2).Cells(ind, 11).Value
+                        Sheets(2).Rows(ind).Delete
+                        ind = ind - 1
+                    Else
+                        temp = Sheets(2).Cells(ind - 1, 11).Value
+                        Sheets(2).Cells(ind - 1, 11) = 1
+                        Sheets(2).Cells(ind, 11) = 1 - temp
+                    End If
+                End If
+            End If
+        End If
+    Next
+
+                    
+                    
+Else
+    Worksheets(4).Cells(pt, 21).Clear
+End If
+
+
+
+
+End Sub
+
